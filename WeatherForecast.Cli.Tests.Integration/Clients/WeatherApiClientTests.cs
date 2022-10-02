@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using WeatherForecast.Cli.Clients;
+using WeatherForecast.Cli.Errors;
 using WeatherForecast.Cli.Interfaces;
 using WeatherForecast.Cli.Models;
 using WeatherForecast.Cli.Options;
@@ -7,10 +8,16 @@ using WeatherForecast.Cli.Options;
 namespace WeatherForecast.Cli.Tests.Integration.Clients;
 public class WeatherApiClientTests
 {
-    [Fact]
-    public async Task GetNext2DaysForecastByCoordinatesAsync_WithApiKey_ReturnsForecast()
+    private readonly HttpClient _httpClient;
+
+    private readonly string _apiKey;
+
+    private const decimal _latitude = 45.464664m;
+
+    private const decimal _longitude = 9.188540m;
+
+    public WeatherApiClientTests()
     {
-        // Arrange
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
             .AddJsonFile("appsettings.Development.json", true)
@@ -20,26 +27,47 @@ public class WeatherApiClientTests
             .GetSection(WeatherApiOptions.SectionKey)
             .Get<WeatherApiOptions>();
 
-        HttpClient httpClient = new()
+        _httpClient = new()
         {
             BaseAddress = new Uri(weatherApiOptions.BaseAddress)
         };
 
-        WeatherApiClient weatherApiClient = new(httpClient, weatherApiOptions.ApiKey);
+        _apiKey = weatherApiOptions.ApiKey;
+    }
 
-        // Milan
-        const decimal latitude = 45.464664m;
-        const decimal longitude = 9.188540m;
+    [Fact]
+    public async Task GetNext2DaysForecastByCoordinatesAsync_WithApiKey_ReturnsForecast()
+    {
+        // Arrange
+        WeatherApiClient weatherApiClient = new(_httpClient, _apiKey);
 
         // Act
         IQueryResult? queryResult = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
-            latitude,
-            longitude);
+            _latitude,
+            _longitude);
 
         // Assert
         queryResult.Should().NotBeNull();
         var forecast = queryResult.Should().BeOfType<Forecast>().Subject;
         string.IsNullOrWhiteSpace(forecast.GetConditionByIndex(0)).Should().BeFalse();
         string.IsNullOrWhiteSpace(forecast.GetConditionByIndex(1)).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetNext2DaysForecastByCoordinatesAsync_WithInvalidApiKey_ReturnsForecast()
+    {
+        // Arrange
+        const string apiKey = "invalidApiKey";
+
+        WeatherApiClient weatherApiClient = new(_httpClient, apiKey);
+
+        // Act
+        IQueryResult? queryResult = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
+            _latitude,
+            _longitude);
+
+        // Assert
+        queryResult.Should().NotBeNull();
+        queryResult.Should().BeOfType<ApiConfigurationError>();
     }
 }

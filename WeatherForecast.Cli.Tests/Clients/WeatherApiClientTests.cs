@@ -82,7 +82,7 @@ public class WeatherApiClientTests
 
         const int code = 9999;
         const string message = "Internal application error";
-        _httpClientFactory.Content = new Error(code, message);
+        _httpClientFactory.Content = new ErrorWrapper(new Error(code, message));
 
         WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _apiKey);
 
@@ -108,7 +108,7 @@ public class WeatherApiClientTests
         // Arrange
         _httpClientFactory.HttpStatusCode = httpStatusCode;
 
-        _httpClientFactory.Content = new Error(errorCode, errorMessage);
+        _httpClientFactory.Content = new ErrorWrapper(new Error(errorCode, errorMessage));
 
         WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _apiKey);
 

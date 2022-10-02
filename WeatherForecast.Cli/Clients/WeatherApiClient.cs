@@ -39,8 +39,10 @@ internal sealed class WeatherApiClient : IWeatherApiClient
             return forecastWrapper?.Forecast;
         }
 
-        var error = await JsonSerializer.DeserializeAsync<Error>(
+        var errorWrapper = await JsonSerializer.DeserializeAsync<ErrorWrapper>(
             responseStream).ConfigureAwait(false);
+
+        Error? error = errorWrapper?.Error;
 
         return error?.Code switch
         {
