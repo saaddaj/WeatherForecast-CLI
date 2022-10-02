@@ -76,4 +76,30 @@ public class WeatherForecastServiceTests
         // Assert
         stringWriter.ToString().Trim().Should().Be("No city was returned from Musement API");
     }
+
+    [Fact]
+    public async Task ProcessCitiesAsync_WhenCityHasNoForecast_OutputsSpecificMessageToTheConsole()
+    {
+        // Arrange
+        City city = new("Milan", 45.464664m, 9.188540m);
+        Mock<IMusementApiClient> musementApiClientMock = new();
+        musementApiClientMock
+            .Setup(m => m.GetCitiesAsync())
+            .ReturnsAsync(new List<City> { city });
+
+        Mock<IWeatherApiClient> weatherApiClientMock = new();
+
+        WeatherForecastService weatherForecastService = new(
+            musementApiClientMock.Object,
+            weatherApiClientMock.Object);
+
+        using StringWriter stringWriter = new();
+        Console.SetOut(stringWriter);
+
+        // Act
+        await weatherForecastService.ProcessCitiesAsync();
+
+        // Assert
+        stringWriter.ToString().Trim().Should().Be($"No weather forecast found for city {city}");
+    }
 }

@@ -36,7 +36,10 @@ internal sealed class WeatherForecastService
             .ConfigureAwait(false);
 
             if (forecast == null)
+            {
+                Console.WriteLine($"No weather forecast found for city {city}");
                 return;
+            }
 
             Console.WriteLine($"Processed city {city.Name} | " +
                 $"{forecast.WeatherToday} - {forecast.WeatherTomorrow}");
