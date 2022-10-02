@@ -32,5 +32,9 @@ public class MusementApiClientTests
         // Assert
         cities.Should().NotBeNull();
         cities.Should().NotBeEmpty();
+        City city = cities!.First();
+        string.IsNullOrWhiteSpace(city.Name).Should().BeFalse();
+        city.Latitude.Should().BeGreaterThan(0);
+        city.Longitude.Should().BeGreaterThan(0);
     }
 }
