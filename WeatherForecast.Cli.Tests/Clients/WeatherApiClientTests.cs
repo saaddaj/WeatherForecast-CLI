@@ -44,4 +44,23 @@ public class WeatherApiClientTests
         actualForecast.Should().NotBeNull();
         actualForecast.Should().BeEquivalentTo(expectedForecast);
     }
+
+    [Fact]
+    public async Task GetForecastByCoordinatesAsync_WhenErrorCode1006_ReturnsNull()
+    {
+        // Arrange
+        _httpClientFactory.HttpStatusCode = HttpStatusCode.BadRequest;
+
+        const int code = 1006;
+        const string message = "No location found matching parameter 'q'";
+        _httpClientFactory.Content = new Error(code, message);
+
+        WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _apiKey);
+
+        // Act
+        Forecast? forecast = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(_latitude, _longitude);
+
+        // Assert
+        forecast.Should().BeNull();
+    }
 }

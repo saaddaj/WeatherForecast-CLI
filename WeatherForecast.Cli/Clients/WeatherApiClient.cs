@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
-using System.Net.Http.Json;
+using System.Net;
+using System.Text.Json;
 using WeatherForecast.Cli.Interfaces;
 using WeatherForecast.Cli.Models;
 
@@ -23,6 +24,15 @@ internal sealed class WeatherApiClient : IWeatherApiClient
             latitude.ToString(CultureInfo.InvariantCulture),
             longitude.ToString(CultureInfo.InvariantCulture));
 
-        return await _httpClient.GetFromJsonAsync<Forecast>(endpoint).ConfigureAwait(false);
+        using HttpResponseMessage responseMessage = await _httpClient.GetAsync(endpoint).ConfigureAwait(false);
+
+        if (responseMessage.StatusCode == HttpStatusCode.OK)
+        {
+            using Stream responseStream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+            return await JsonSerializer.DeserializeAsync<Forecast>(responseStream).ConfigureAwait(false);
+        }
+
+        return null;
     }
 }
