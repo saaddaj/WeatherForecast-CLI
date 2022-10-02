@@ -32,8 +32,13 @@ public class WeatherApiClientTests
         // Arrange
         _httpClientFactory.HttpStatusCode = HttpStatusCode.OK;
 
-        Forecast expectedForecast = new("Sunny", "Partly cloudy");
-        _httpClientFactory.Content = expectedForecast;
+        DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+        Forecast expectedForecast = new(new ForecastDay[]
+        {
+            new(today, new Day(new Condition("Sunny"))),
+            new(today.AddDays(1), new Day(new Condition("Partly cloudy"))),
+        });
+        _httpClientFactory.Content = new ForecastWrapper(expectedForecast);
 
         WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _apiKey);
 

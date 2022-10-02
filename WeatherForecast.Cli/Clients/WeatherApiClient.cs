@@ -25,14 +25,22 @@ internal sealed class WeatherApiClient : IWeatherApiClient
             latitude.ToString(CultureInfo.InvariantCulture),
             longitude.ToString(CultureInfo.InvariantCulture));
 
-        using HttpResponseMessage responseMessage = await _httpClient.GetAsync(endpoint).ConfigureAwait(false);
+        using HttpResponseMessage responseMessage = await _httpClient.GetAsync(
+            endpoint).ConfigureAwait(false);
 
-        using Stream responseStream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+        using Stream responseStream = await responseMessage.Content.ReadAsStreamAsync()
+            .ConfigureAwait(false);
 
         if (responseMessage.StatusCode == HttpStatusCode.OK)
-            return await JsonSerializer.DeserializeAsync<Forecast>(responseStream).ConfigureAwait(false);
+        {
+            var forecastWrapper = await JsonSerializer.DeserializeAsync<ForecastWrapper>(
+                responseStream).ConfigureAwait(false);
 
-        var error = await JsonSerializer.DeserializeAsync<Error>(responseStream).ConfigureAwait(false);
+            return forecastWrapper?.Forecast;
+        }
+
+        var error = await JsonSerializer.DeserializeAsync<Error>(
+            responseStream).ConfigureAwait(false);
 
         return error?.Code switch
         {

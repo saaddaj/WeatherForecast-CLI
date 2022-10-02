@@ -17,12 +17,21 @@ public class WeatherForecastServiceTests
         Mock<IMusementApiClient> musementApiClientMock = new();
         musementApiClientMock.Setup(m => m.GetCitiesAsync()).ReturnsAsync(cities);
 
+        DateOnly today = DateOnly.FromDateTime(DateTime.Today);
         Dictionary<(decimal Latitude, decimal Longitude), Forecast> forecasts = new()
         {
             // Milan
-            [(45.464664m, 9.188540m)] = new("Heavy rain", "Partly cloudy"),
+            [(45.464664m, 9.188540m)] = new(new ForecastDay[]
+            {
+                new(today, new Day(new Condition("Heavy rain"))),
+                new(today.AddDays(1), new Day(new Condition("Partly cloudy")))
+            }),
             // Rome
-            [(41.902782m, 12.496366m)] = new("Sunny", "Sunny")
+            [(41.902782m, 12.496366m)] = new(new ForecastDay[]
+            {
+                new(today, new Day(new Condition("Sunny"))),
+                new(today.AddDays(1), new Day(new Condition("Sunny")))
+            }),
         };
         Mock<IWeatherApiClient> weatherApiClientMock = new();
         weatherApiClientMock.Setup(

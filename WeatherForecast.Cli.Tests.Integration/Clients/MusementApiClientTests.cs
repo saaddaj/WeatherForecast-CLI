@@ -1,5 +1,7 @@
-﻿using WeatherForecast.Cli.Clients;
+﻿using Microsoft.Extensions.Configuration;
+using WeatherForecast.Cli.Clients;
 using WeatherForecast.Cli.Models;
+using WeatherForecast.Cli.Options;
 
 namespace WeatherForecast.Cli.Tests.Integration.Clients;
 public class MusementApiClientTests
@@ -8,9 +10,18 @@ public class MusementApiClientTests
     public async Task GetCitiesAsyncTest()
     {
         // Arrange
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .AddJsonFile("appsettings.Development.json", true)
+            .Build();
+
+        var musementApiOptions = configuration
+            .GetSection(MusementApiOptions.SectionKey)
+            .Get<MusementApiOptions>();
+
         HttpClient httpClient = new()
         {
-            BaseAddress = new Uri("https://sandbox.musement.com")
+            BaseAddress = new Uri(musementApiOptions.BaseAddress)
         };
 
         MusementApiClient musementApiClient = new(httpClient);

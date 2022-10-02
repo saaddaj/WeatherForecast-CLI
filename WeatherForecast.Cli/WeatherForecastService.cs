@@ -73,8 +73,8 @@ internal sealed class WeatherForecastService
 
     private static void OutputCityForecast(City city, Forecast forecast)
     {
-        string weatherToday = forecast.WeatherToday;
-        string weatherTomorrow = forecast.WeatherTomorrow;
+        string? weatherToday = forecast.GetConditionByIndex(0);
+        string? weatherTomorrow = forecast.GetConditionByIndex(1);
 
         Console.WriteLine($"Processed city {city.Name} | {weatherToday} - {weatherTomorrow}");
     }
