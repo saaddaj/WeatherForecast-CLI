@@ -6,5 +6,5 @@ internal interface IMusementApiClient
     /// <summary>
     /// Gets the collection of cities
     /// </summary>
-    public Task<ICollection<City>> GetCitiesAsync();
+    public Task<ICollection<City>?> GetCitiesAsync();
 }

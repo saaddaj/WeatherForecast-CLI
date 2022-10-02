@@ -20,7 +20,13 @@ internal sealed class WeatherForecastService
     /// </summary>
     public async Task ProcessCitiesAsync()
     {
-        ICollection<City> cities = await _musementApiClient.GetCitiesAsync().ConfigureAwait(false);
+        ICollection<City>? cities = await _musementApiClient.GetCitiesAsync().ConfigureAwait(false);
+
+        if (cities == null)
+        {
+            Console.WriteLine("An error occured in the request to Musement API");
+            return;
+        }
 
         if (cities.Count == 0)
         {

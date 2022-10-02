@@ -24,9 +24,10 @@ public class MusementApiClientTests
         MusementApiClient musementApiClient = new(_httpClientFactory.CreateClient());
 
         // Act
-        ICollection<City> actualCities = await musementApiClient.GetCitiesAsync();
+        ICollection<City>? actualCities = await musementApiClient.GetCitiesAsync();
 
         // Assert
+        actualCities.Should().NotBeNull();
         actualCities.Should().BeEquivalentTo(expectedCities);
     }
 
@@ -39,9 +40,25 @@ public class MusementApiClientTests
         MusementApiClient musementApiClient = new(_httpClientFactory.CreateClient());
 
         // Act
-        ICollection<City> cities = await musementApiClient.GetCitiesAsync();
+        ICollection<City>? cities = await musementApiClient.GetCitiesAsync();
 
         // Assert
+        cities.Should().NotBeNull();
         cities.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetCitiesAsync_WhenServiceUnavailable_ReturnsNull()
+    {
+        // Arrange
+        _httpClientFactory.HttpStatusCode = HttpStatusCode.ServiceUnavailable;
+
+        MusementApiClient musementApiClient = new(_httpClientFactory.CreateClient());
+
+        // Act
+        ICollection<City>? cities = await musementApiClient.GetCitiesAsync();
+
+        // Assert
+        cities.Should().BeNull();
     }
 }
