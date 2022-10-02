@@ -1,11 +1,20 @@
 ﻿using System.Net;
 using System.Text.Json;
+using Polly;
+using Polly.Extensions.Http;
 using WeatherForecast.Cli.Interfaces;
 using WeatherForecast.Cli.Models;
 
 namespace WeatherForecast.Cli.Clients;
 internal sealed class MusementApiClient : IMusementApiClient
 {
+    public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+    {
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .WaitAndRetryAsync(10, retryAttempt => TimeSpan.FromMinutes(Math.Pow(2, retryAttempt)));
+    }
+
     private readonly HttpClient _httpClient;
 
     public MusementApiClient(HttpClient httpClient)
