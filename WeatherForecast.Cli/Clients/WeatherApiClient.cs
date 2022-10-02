@@ -1,9 +1,11 @@
 ﻿using System.Globalization;
 using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 using WeatherForecast.Cli.Errors;
 using WeatherForecast.Cli.Interfaces;
 using WeatherForecast.Cli.Models;
+using WeatherForecast.Cli.Options;
 
 namespace WeatherForecast.Cli.Clients;
 internal sealed class WeatherApiClient : IWeatherApiClient
@@ -12,10 +14,11 @@ internal sealed class WeatherApiClient : IWeatherApiClient
 
     private readonly string _apiKey;
 
-    public WeatherApiClient(HttpClient httpClient, string apiKey)
+    public WeatherApiClient(HttpClient httpClient,
+        IOptions<WeatherApiOptions> weatherApiOptions)
     {
         _httpClient = httpClient;
-        _apiKey = apiKey;
+        _apiKey = weatherApiOptions.Value.ApiKey;
     }
 
     public async Task<IQueryResult?> GetNext2DaysForecastByCoordinatesAsync(decimal latitude, decimal longitude)

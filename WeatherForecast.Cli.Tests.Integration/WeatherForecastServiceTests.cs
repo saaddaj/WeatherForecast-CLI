@@ -34,7 +34,8 @@ public class WeatherForecastServiceTests
             BaseAddress = new Uri(weatherApiOptions.BaseAddress)
         };
         IWeatherApiClient weatherApiClient = new WeatherApiClient(
-            weatherHttpClient, weatherApiOptions.ApiKey);
+            weatherHttpClient,
+            Microsoft.Extensions.Options.Options.Create(weatherApiOptions));
 
         WeatherForecastService weatherForecastService = new(musementApiClient, weatherApiClient);
 

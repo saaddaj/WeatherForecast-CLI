@@ -1,9 +1,11 @@
 ﻿using System.Globalization;
 using System.Net;
+using Microsoft.Extensions.Options;
 using WeatherForecast.Cli.Clients;
 using WeatherForecast.Cli.Errors;
 using WeatherForecast.Cli.Interfaces;
 using WeatherForecast.Cli.Models;
+using WeatherForecast.Cli.Options;
 
 namespace WeatherForecast.Cli.Tests.Clients;
 public class WeatherApiClientTests
@@ -16,14 +18,21 @@ public class WeatherApiClientTests
 
     private readonly HttpClientFactory _httpClientFactory;
 
+    private readonly IOptions<WeatherApiOptions> _weatherApiOptions;
+
     public WeatherApiClientTests()
     {
+        const string apiKey = "testApiKey";
+
         string request = string.Format("/v1/forecast.json?key={0}&q={1},{2}&days=2",
-            _apiKey,
+            apiKey,
             _latitude.ToString(CultureInfo.InvariantCulture),
             _longitude.ToString(CultureInfo.InvariantCulture));
 
         _httpClientFactory = new HttpClientFactory(request);
+
+        _weatherApiOptions = Microsoft.Extensions.Options.Options.Create(
+            new WeatherApiOptions() { ApiKey = apiKey });
     }
 
     [Fact]
@@ -40,7 +49,7 @@ public class WeatherApiClientTests
         });
         _httpClientFactory.Content = new ForecastWrapper(expectedForecast);
 
-        WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _apiKey);
+        WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _weatherApiOptions);
 
         // Act
         IQueryResult? queryResult = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
@@ -63,7 +72,7 @@ public class WeatherApiClientTests
         const string message = "No location found matching parameter 'q'";
         _httpClientFactory.Content = new Error(code, message);
 
-        WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _apiKey);
+        WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _weatherApiOptions);
 
         // Act
         IQueryResult? queryResult = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
@@ -84,7 +93,7 @@ public class WeatherApiClientTests
         const string message = "Internal application error";
         _httpClientFactory.Content = new ErrorWrapper(new Error(code, message));
 
-        WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _apiKey);
+        WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _weatherApiOptions);
 
         // Act
         IQueryResult? queryResult = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
@@ -110,7 +119,7 @@ public class WeatherApiClientTests
 
         _httpClientFactory.Content = new ErrorWrapper(new Error(errorCode, errorMessage));
 
-        WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _apiKey);
+        WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _weatherApiOptions);
 
         // Act
         IQueryResult? queryResult = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(

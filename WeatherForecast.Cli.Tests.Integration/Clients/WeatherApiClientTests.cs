@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using WeatherForecast.Cli.Clients;
 using WeatherForecast.Cli.Errors;
 using WeatherForecast.Cli.Interfaces;
@@ -39,7 +40,10 @@ public class WeatherApiClientTests
     public async Task GetNext2DaysForecastByCoordinatesAsync_WithApiKey_ReturnsForecast()
     {
         // Arrange
-        WeatherApiClient weatherApiClient = new(_httpClient, _apiKey);
+        IOptions<WeatherApiOptions> weatherApiOptions = Microsoft.Extensions.Options.Options.Create(
+            new WeatherApiOptions() { ApiKey = _apiKey });
+
+        WeatherApiClient weatherApiClient = new(_httpClient, weatherApiOptions);
 
         // Act
         IQueryResult? queryResult = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
@@ -57,9 +61,10 @@ public class WeatherApiClientTests
     public async Task GetNext2DaysForecastByCoordinatesAsync_WithInvalidApiKey_ReturnsForecast()
     {
         // Arrange
-        const string apiKey = "invalidApiKey";
+        IOptions<WeatherApiOptions> weatherApiOptions = Microsoft.Extensions.Options.Options.Create(
+            new WeatherApiOptions() { ApiKey = "invalidApiKey" });
 
-        WeatherApiClient weatherApiClient = new(_httpClient, apiKey);
+        WeatherApiClient weatherApiClient = new(_httpClient, weatherApiOptions);
 
         // Act
         IQueryResult? queryResult = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
