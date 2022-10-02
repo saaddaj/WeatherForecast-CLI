@@ -1,21 +1,34 @@
 ﻿using System.Globalization;
 using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
+using Polly;
+using Polly.Contrib.WaitAndRetry;
+using Polly.Extensions.Http;
 using WeatherForecast.Cli.Errors;
 using WeatherForecast.Cli.Interfaces;
 using WeatherForecast.Cli.Models;
+using WeatherForecast.Cli.Options;
 
 namespace WeatherForecast.Cli.Clients;
 internal sealed class WeatherApiClient : IWeatherApiClient
 {
+    public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+    {
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(1), 5));
+    }
+
     private readonly HttpClient _httpClient;
 
     private readonly string _apiKey;
 
-    public WeatherApiClient(HttpClient httpClient, string apiKey)
+    public WeatherApiClient(HttpClient httpClient,
+        IOptions<WeatherApiOptions> weatherApiOptions)
     {
         _httpClient = httpClient;
-        _apiKey = apiKey;
+        _apiKey = weatherApiOptions.Value.ApiKey;
     }
 
     public async Task<IQueryResult?> GetNext2DaysForecastByCoordinatesAsync(decimal latitude, decimal longitude)

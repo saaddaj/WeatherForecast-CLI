@@ -5,5 +5,7 @@ internal sealed class WeatherApiOptions
 
     public string BaseAddress { get; set; } = string.Empty;
 
+    public string HandlerLifeTime { get; set; } = string.Empty;
+
     public string ApiKey { get; set; } = string.Empty;
 }
