@@ -52,4 +52,28 @@ public class WeatherForecastServiceTests
                 "Processed city Rome | Sunny - Sunny"
             });
     }
+
+    [Fact]
+    public async Task ProcessCitiesAsync_WhenNoCityReturned_OutputsSpecificMessageToTheConsole()
+    {
+        // Arrange
+        List<City> cities = new();
+        Mock<IMusementApiClient> musementApiClientMock = new();
+        musementApiClientMock.Setup(m => m.GetCitiesAsync()).ReturnsAsync(cities);
+
+        Mock<IWeatherApiClient> weatherApiClientMock = new();
+
+        WeatherForecastService weatherForecastService = new(
+            musementApiClientMock.Object,
+            weatherApiClientMock.Object);
+
+        using StringWriter stringWriter = new();
+        Console.SetOut(stringWriter);
+
+        // Act
+        await weatherForecastService.ProcessCitiesAsync();
+
+        // Assert
+        stringWriter.ToString().Trim().Should().Be("No city was returned from Musement API");
+    }
 }

@@ -22,6 +22,12 @@ internal sealed class WeatherForecastService
     {
         ICollection<City> cities = await _musementApiClient.GetCitiesAsync().ConfigureAwait(false);
 
+        if (cities.Count == 0)
+        {
+            Console.WriteLine("No city was returned from Musement API");
+            return;
+        }
+
         await Parallel.ForEachAsync(cities, async (city, _) =>
         {
             Forecast? forecast = await _weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
