@@ -24,7 +24,8 @@ internal static class RegisterDependencies
             .Get<MusementApiOptions>();
 
         services.AddHttpClient<IMusementApiClient, MusementApiClient>(
-            c => c.BaseAddress = new Uri(musementApiOptions.BaseAddress));
+            c => c.BaseAddress = new Uri(musementApiOptions.BaseAddress))
+            .SetHandlerLifetime(TimeSpan.Parse(musementApiOptions.HandlerLifeTime));
     }
 
     private static void RegisterWeatherApiClient(IServiceCollection services,
@@ -38,6 +39,7 @@ internal static class RegisterDependencies
         var weatherApiOptions = weatherApiSection.Get<WeatherApiOptions>();
 
         services.AddHttpClient<IWeatherApiClient, WeatherApiClient>(
-            c => c.BaseAddress = new Uri(weatherApiOptions.BaseAddress));
+            c => c.BaseAddress = new Uri(weatherApiOptions.BaseAddress))
+            .SetHandlerLifetime(TimeSpan.Parse(weatherApiOptions.HandlerLifeTime));
     }
 }
