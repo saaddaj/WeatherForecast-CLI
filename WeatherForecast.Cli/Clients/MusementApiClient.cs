@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Json;
+﻿using System.Text.Json;
 using WeatherForecast.Cli.Interfaces;
 using WeatherForecast.Cli.Models;
 
@@ -14,8 +14,11 @@ internal sealed class MusementApiClient : IMusementApiClient
 
     public async Task<ICollection<City>> GetCitiesAsync()
     {
-        List<City>? cities = await _httpClient.GetFromJsonAsync<List<City>>(
-            "/api/v3/cities").ConfigureAwait(false);
+        using HttpResponseMessage responseMessage = await _httpClient.GetAsync("/api/v3/cities").ConfigureAwait(false);
+
+        using Stream responseStream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+        var cities = await JsonSerializer.DeserializeAsync<List<City>>(responseStream).ConfigureAwait(false);
 
         return cities ?? new List<City>();
     }

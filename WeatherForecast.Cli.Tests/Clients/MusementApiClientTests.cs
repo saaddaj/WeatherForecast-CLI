@@ -21,14 +21,27 @@ public class MusementApiClientTests
         };
         _httpClientFactory.Content = expectedCities;
 
-        HttpClient httpClient = _httpClientFactory.CreateClient();
-
-        MusementApiClient musementApiClient = new(httpClient);
+        MusementApiClient musementApiClient = new(_httpClientFactory.CreateClient());
 
         // Act
         ICollection<City> actualCities = await musementApiClient.GetCitiesAsync();
 
         // Assert
         actualCities.Should().BeEquivalentTo(expectedCities);
+    }
+
+    [Fact]
+    public async Task GetCitiesAsync_WhenNotFound_ReturnsEmptyCollection()
+    {
+        // Arrange
+        _httpClientFactory.HttpStatusCode = HttpStatusCode.NotFound;
+
+        MusementApiClient musementApiClient = new(_httpClientFactory.CreateClient());
+
+        // Act
+        ICollection<City> cities = await musementApiClient.GetCitiesAsync();
+
+        // Assert
+        cities.Should().BeEmpty();
     }
 }
