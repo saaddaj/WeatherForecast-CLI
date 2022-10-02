@@ -1,4 +1,5 @@
-﻿using WeatherForecast.Cli.Interfaces;
+﻿using WeatherForecast.Cli.Errors;
+using WeatherForecast.Cli.Interfaces;
 using WeatherForecast.Cli.Models;
 
 namespace WeatherForecast.Cli.Tests;
@@ -125,5 +126,40 @@ public class WeatherForecastServiceTests
 
         // Assert
         stringWriter.ToString().Trim().Should().Be($"No weather forecast found for city {city}");
+    }
+
+    [Fact]
+    public async Task ProcessCitiesAsync_WhenApiInternalError_OutputsSpecificMessageToTheConsole()
+    {
+        // Arrange
+        City city = new("Milan", 45.464664m, 9.188540m);
+        Mock<IMusementApiClient> musementApiClientMock = new();
+        musementApiClientMock
+            .Setup(m => m.GetCitiesAsync())
+            .ReturnsAsync(new List<City> { city });
+
+        Mock<IWeatherApiClient> weatherApiClientMock = new();
+        weatherApiClientMock.Setup(
+                w => w.GetNext2DaysForecastByCoordinatesAsync(
+                    It.IsAny<decimal>(),
+                    It.IsAny<decimal>()))
+            .ReturnsAsync(new ApiInternalError());
+
+        WeatherForecastService weatherForecastService = new(
+            musementApiClientMock.Object,
+            weatherApiClientMock.Object);
+
+        using StringWriter stringWriter = new();
+        Console.SetOut(stringWriter);
+
+        // Act
+        await weatherForecastService.ProcessCitiesAsync();
+
+        // Assert
+        stringWriter
+            .ToString()
+            .Trim()
+            .Should()
+            .Be($"An error internal to weatherapi occured when requesting city {city}");
     }
 }

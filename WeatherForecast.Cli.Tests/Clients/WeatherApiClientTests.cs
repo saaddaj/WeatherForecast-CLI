@@ -1,6 +1,8 @@
 ﻿using System.Globalization;
 using System.Net;
 using WeatherForecast.Cli.Clients;
+using WeatherForecast.Cli.Errors;
+using WeatherForecast.Cli.Interfaces;
 using WeatherForecast.Cli.Models;
 
 namespace WeatherForecast.Cli.Tests.Clients;
@@ -36,12 +38,13 @@ public class WeatherApiClientTests
         WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _apiKey);
 
         // Act
-        Forecast? actualForecast = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
+        IQueryResult? queryResult = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
             _latitude,
             _longitude);
 
         // Assert
-        actualForecast.Should().NotBeNull();
+        queryResult.Should().NotBeNull();
+        var actualForecast = queryResult.Should().BeOfType<Forecast>().Subject;
         actualForecast.Should().BeEquivalentTo(expectedForecast);
     }
 
@@ -58,9 +61,33 @@ public class WeatherApiClientTests
         WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _apiKey);
 
         // Act
-        Forecast? forecast = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(_latitude, _longitude);
+        IQueryResult? queryResult = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
+            _latitude,
+            _longitude);
 
         // Assert
-        forecast.Should().BeNull();
+        queryResult.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetForecastByCoordinatesAsync_WhenErrorCode9999_ReturnsApiInternalError()
+    {
+        // Arrange
+        _httpClientFactory.HttpStatusCode = HttpStatusCode.BadRequest;
+
+        const int code = 9999;
+        const string message = "Internal application error";
+        _httpClientFactory.Content = new Error(code, message);
+
+        WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _apiKey);
+
+        // Act
+        IQueryResult? queryResult = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
+            _latitude,
+            _longitude);
+
+        // Assert
+        queryResult.Should().NotBeNull();
+        queryResult.Should().BeOfType<ApiInternalError>();
     }
 }

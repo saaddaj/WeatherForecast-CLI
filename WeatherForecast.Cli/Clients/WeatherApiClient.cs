@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Net;
 using System.Text.Json;
+using WeatherForecast.Cli.Errors;
 using WeatherForecast.Cli.Interfaces;
 using WeatherForecast.Cli.Models;
 
@@ -17,7 +18,7 @@ internal sealed class WeatherApiClient : IWeatherApiClient
         _apiKey = apiKey;
     }
 
-    public async Task<Forecast?> GetNext2DaysForecastByCoordinatesAsync(decimal latitude, decimal longitude)
+    public async Task<IQueryResult?> GetNext2DaysForecastByCoordinatesAsync(decimal latitude, decimal longitude)
     {
         string endpoint = string.Format("/v1/forecast.json?key={0}&q={1},{2}&days=2",
             _apiKey,
@@ -26,13 +27,17 @@ internal sealed class WeatherApiClient : IWeatherApiClient
 
         using HttpResponseMessage responseMessage = await _httpClient.GetAsync(endpoint).ConfigureAwait(false);
 
+        using Stream responseStream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
         if (responseMessage.StatusCode == HttpStatusCode.OK)
-        {
-            using Stream responseStream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
-
             return await JsonSerializer.DeserializeAsync<Forecast>(responseStream).ConfigureAwait(false);
-        }
 
-        return null;
+        var error = await JsonSerializer.DeserializeAsync<Error>(responseStream).ConfigureAwait(false);
+
+        return error?.Code switch
+        {
+            9999 => new ApiInternalError(),
+            _ => null
+        };
     }
 }

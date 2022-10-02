@@ -1,4 +1,5 @@
-﻿using WeatherForecast.Cli.Interfaces;
+﻿using WeatherForecast.Cli.Errors;
+using WeatherForecast.Cli.Interfaces;
 using WeatherForecast.Cli.Models;
 
 namespace WeatherForecast.Cli;
@@ -36,19 +37,36 @@ internal sealed class WeatherForecastService
 
         await Parallel.ForEachAsync(cities, async (city, _) =>
         {
-            Forecast? forecast = await _weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
+            IQueryResult? queryResult = await _weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
                 city.Latitude,
                 city.Longitude)
             .ConfigureAwait(false);
 
-            if (forecast == null)
+            if (queryResult == null)
             {
                 Console.WriteLine($"No weather forecast found for city {city}");
                 return;
             }
 
-            Console.WriteLine($"Processed city {city.Name} | " +
-                $"{forecast.WeatherToday} - {forecast.WeatherTomorrow}");
+            switch (queryResult)
+            {
+                case Forecast forecast:
+                    OutputCityForecast(city, forecast);
+                    break;
+
+                case ApiInternalError:
+                    Console.WriteLine($"An error internal to weatherapi occured when requesting city {city}");
+                    break;
+            }
+
         });
+    }
+
+    private static void OutputCityForecast(City city, Forecast forecast)
+    {
+        string weatherToday = forecast.WeatherToday;
+        string weatherTomorrow = forecast.WeatherTomorrow;
+
+        Console.WriteLine($"Processed city {city.Name} | {weatherToday} - {weatherTomorrow}");
     }
 }
