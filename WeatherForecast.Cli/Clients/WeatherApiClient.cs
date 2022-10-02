@@ -36,7 +36,11 @@ internal sealed class WeatherApiClient : IWeatherApiClient
 
         return error?.Code switch
         {
-            9999 => new ApiInternalError(),
+            #pragma warning disable format
+            9999                                            => new ApiInternalError(),
+            1002 or 1003 or 1005 or 2006 or 2007 or 2008    => new ApiConfigurationError(error?.Message),
+            #pragma warning restore format
+
             _ => null
         };
     }

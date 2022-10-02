@@ -35,31 +35,40 @@ internal sealed class WeatherForecastService
             return;
         }
 
-        await Parallel.ForEachAsync(cities, async (city, _) =>
+        try
         {
-            IQueryResult? queryResult = await _weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
-                city.Latitude,
-                city.Longitude)
-            .ConfigureAwait(false);
-
-            if (queryResult == null)
+            await Parallel.ForEachAsync(cities, async (city, _) =>
             {
-                Console.WriteLine($"No weather forecast found for city {city}");
-                return;
-            }
+                IQueryResult? queryResult = await _weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
+                    city.Latitude,
+                    city.Longitude)
+                .ConfigureAwait(false);
 
-            switch (queryResult)
-            {
-                case Forecast forecast:
-                    OutputCityForecast(city, forecast);
-                    break;
+                if (queryResult == null)
+                {
+                    Console.WriteLine($"No weather forecast found for city {city}");
+                    return;
+                }
 
-                case ApiInternalError:
-                    Console.WriteLine($"An error internal to weatherapi occured when requesting city {city}");
-                    break;
-            }
+                switch (queryResult)
+                {
+                    case Forecast forecast:
+                        OutputCityForecast(city, forecast);
+                        break;
 
-        });
+                    case ApiInternalError:
+                        Console.WriteLine($"An error internal to weatherapi occured when requesting city {city}");
+                        break;
+
+                    case ApiConfigurationError apiConfigurationError:
+                        throw new OperationCanceledException(apiConfigurationError.Message);
+                }
+            });
+        }
+        catch (OperationCanceledException e)
+        {
+            Console.WriteLine($"The operation was canceled for the following reason: '{e.Message}'");
+        }
     }
 
     private static void OutputCityForecast(City city, Forecast forecast)

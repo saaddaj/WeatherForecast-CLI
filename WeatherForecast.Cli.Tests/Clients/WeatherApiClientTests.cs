@@ -90,4 +90,31 @@ public class WeatherApiClientTests
         queryResult.Should().NotBeNull();
         queryResult.Should().BeOfType<ApiInternalError>();
     }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized, 1002, "API key not provided")]
+    [InlineData(HttpStatusCode.BadRequest, 1003, "Parameter 'q' not provided")]
+    [InlineData(HttpStatusCode.BadRequest, 1005, "API request url is invalid")]
+    [InlineData(HttpStatusCode.Unauthorized, 2006, "API key provided is invalid")]
+    [InlineData(HttpStatusCode.Forbidden, 2007, "API key has exceeded calls per month quota")]
+    [InlineData(HttpStatusCode.Forbidden, 2008, "API key has been disabled")]
+    public async Task GetForecastByCoordinatesAsync_WhenSpecificErrorCodes_ReturnsApiConfigurationError(HttpStatusCode httpStatusCode, int errorCode, string errorMessage)
+    {
+        // Arrange
+        _httpClientFactory.HttpStatusCode = httpStatusCode;
+
+        _httpClientFactory.Content = new Error(errorCode, errorMessage);
+
+        WeatherApiClient weatherApiClient = new(_httpClientFactory.CreateClient(), _apiKey);
+
+        // Act
+        IQueryResult? queryResult = await weatherApiClient.GetNext2DaysForecastByCoordinatesAsync(
+            _latitude,
+            _longitude);
+
+        // Assert
+        queryResult.Should().NotBeNull();
+        var apiConfigurationError = queryResult.Should().BeOfType<ApiConfigurationError>().Subject;
+        apiConfigurationError.Message.Should().Be(errorMessage);
+    }
 }
