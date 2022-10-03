@@ -7,6 +7,7 @@ using WeatherForecast.Cli;
 IConfigurationRoot configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
     .AddJsonFile("appsettings.Development.json", true)
+    .AddEnvironmentVariables()
     .Build();
 
 using IHost host = Host.CreateDefaultBuilder()

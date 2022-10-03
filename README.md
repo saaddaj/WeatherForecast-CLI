@@ -18,6 +18,10 @@ Using docker you can run the application by doing the following :
 
 If you don't already have a valid weatherapi key, you can get one by signing up for free here: https://www.weatherapi.com/signup.aspx
 
+If you want, you can ommit the second step by providing the weatherapi key using an environment variable during the fourth step using the following command: `docker run -it --rm --env WeatherApi__ApiKey={YourApiKey} weather-forecast-cli-image`
+
+You can override the other settings in the same way, adding as much `--env {SettingKey}={SettingValue}` options as needed.
+
 ## How the application is organized
 The solution is composed of three projects:
 - The `WeatherForecast.Cli` project which is the console application, containing all of the logic
