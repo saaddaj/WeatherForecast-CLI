@@ -1,5 +1,6 @@
 ﻿# C# .NET 6 Weather Forecast CLI
 ## A cross-plateform console application that fetches the weather forecast for the next 2 days for each of the cities where TUI Musement has activities to sell
+My name is Samy AADDAJ ELOUDHRIRI.
 
 This project is my attempt at solving TUI Musement technical challenge of creating a weather forecast CLI application.
 
