@@ -1,5 +1,5 @@
 ﻿# C# .NET 6 Weather Forecast CLI
-## A console application that fetches the weather forecast for the next 2 days for each of the cities where TUI Musement has activities to sell
+## A cross-plateform console application that fetches the weather forecast for the next 2 days for each of the cities where TUI Musement has activities to sell
 
 This project is my attempt at solving TUI Musement technical challenge of creating a weather forecast CLI application.
 
@@ -7,6 +7,16 @@ The application does the following:
 - request all of the cities by calling Musement's API endpoint `GET /api/v3/cities`
 - request the corresponding weather forecast of each city for the next 2 days by calling one of weatherapi's forecast API endpoint
 - print it all out to the console using the specific template `Processed city [city name] | [weather today] - [wheather tomorrow]`
+
+## How to use the application
+Using docker you can run the application by doing the following :
+1. Clone this repository
+2. Modify the appsettings.json file, at the root of the `WeatherForecast.Cli` project, to provide a valid weatherapi key under the `WeatherApi:ApiKey` setting
+3. Open a terminal inside of the `WeatherForecast.Cli` folder
+3. Build a docker image by using the following command: `docker build -t weather-forecast-cli-image -f Dockerfile .`
+4. Start a single run by using the following command: `docker run -it --rm weather-forecast-cli-image`
+
+If you don't already have a valid weatherapi key, you can get one by signing up for free here: https://www.weatherapi.com/signup.aspx
 
 ## How the application is organized
 The solution is composed of three projects:
